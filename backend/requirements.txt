@@ -1,0 +1,7 @@
+Flask
+SQLAlchemy
+psycopg2-binary
+Werkzeug
+pytest
+pytest-mock
+flasgger
