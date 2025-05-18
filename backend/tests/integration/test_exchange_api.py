@@ -27,25 +27,6 @@ def user3_data():
 
 
 @pytest.fixture
-def create_user(db_session):
-    """Фикстура для создания пользователя в БД."""
-
-    def _create_user(username, password, email, is_admin=False):
-        user = User(
-            username=username,
-            email=email,
-            hashed_password=hash_password(password),
-            is_admin=is_admin
-        )
-        db_session.add(user)
-        db_session.commit()
-        db_session.refresh(user)
-        return user
-
-    return _create_user
-
-
-@pytest.fixture
 def user1_auth_headers(user1_data):
     """Заголовки авторизации для пользователя 1."""
     return basic_auth_headers(user1_data["username"], user1_data["password"])
@@ -61,28 +42,6 @@ def user2_auth_headers(user2_data):
 def user3_auth_headers(user3_data):
     """Заголовки авторизации для пользователя 3."""
     return basic_auth_headers(user3_data["username"], user3_data["password"])
-
-
-@pytest.fixture
-# pylint: disable=unused-argument
-def create_book(db_session):
-    """Фикстура для создания книги в БД."""
-
-    def _create_book(title, author, owner_id, description="Test book desc", is_available=True):
-        """Функция-фабрика для создания книги."""
-        book = Book(
-            title=title,
-            author=author,
-            owner_id=owner_id,
-            description=description,
-            is_available=is_available
-        )
-        db_session.add(book)
-        db_session.commit()
-        db_session.refresh(book)
-        return book
-
-    return _create_book
 
 
 @pytest.fixture

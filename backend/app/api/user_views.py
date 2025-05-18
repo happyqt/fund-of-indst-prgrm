@@ -4,6 +4,7 @@
 from flask import request, jsonify, g
 from app.database import get_db
 from app.models.user import User
+from app.models.book import Book
 from app.auth import login_required, hash_password
 from sqlalchemy.exc import SQLAlchemyError
 
@@ -86,7 +87,7 @@ def get_current_user_info():
       500:
         $ref: '#/components/responses/InternalServerError'
     """
-    user = g.current_user # login_required уже поместил пользователя в g.current_user
+    user = g.current_user  # login_required уже поместил пользователя в g.current_user
     user_data = {
         "id": user.id,
         "username": user.username,
@@ -94,3 +95,50 @@ def get_current_user_info():
         "is_admin": user.is_admin
     }
     return jsonify(user_data), 200
+
+
+@login_required
+def get_my_books():
+    """
+    Получить список книг текущего аутентифицированного пользователя.
+    ---
+    tags:
+      - Users
+    summary: Получить список книг текущего пользователя
+    description: Требуется Basic авторизация. Возвращает все книги, принадлежащие пользователю.
+    security:
+      - basicAuth: []
+    responses:
+      200:
+        description: Список книг пользователя.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BookListResponse' # Используем ту же схему, что и для общего списка книг
+      401:
+        $ref: '#/components/responses/UnauthorizedError'
+      500:
+        $ref: '#/components/responses/InternalServerError'
+    """
+    db_generator = get_db()
+    db = next(db_generator)
+    try:
+        user_id = g.current_user.id
+        books = db.query(Book).filter(Book.owner_id == user_id).order_by(Book.id).all()
+        books_list = []
+        for book in books:
+            books_list.append({
+                "id": book.id,
+                "title": book.title,
+                "author": book.author,
+                "description": book.description,
+                "owner_id": book.owner_id,
+                "is_available": book.is_available
+            })
+        return jsonify(books_list), 200
+    except SQLAlchemyError as e:
+        return jsonify({"error": "Database error", "message": str(e)}), 500
+    except Exception as e:
+        return jsonify({"error": "Internal server error", "message": str(e)}), 500
+    finally:
+        db_generator.close()

@@ -5,8 +5,8 @@ from flask import Flask, jsonify, request, g
 from app.database import init_db, get_db
 from app.models.book import Book
 from app.models.user import User
-from app.api.book_views import list_books, get_book
-from app.api.user_views import register_user, get_current_user_info
+from app.api.book_views import list_books, get_book, update_book, delete_book
+from app.api.user_views import register_user, get_current_user_info, get_my_books
 from app.api.exchange_views import (
     propose_exchange,
     list_user_exchanges,
@@ -312,16 +312,10 @@ def create_app():
         }
     }
 
-    # with app.app_context():
-    #     print("Attempting to initialize database...")
-    #     try:
-    #         init_db()
-    #         print("Database initialization routine finished.")
-    #     except Exception as e:
-    #         print(f"Error during database initialization: {e}")
-
     app.add_url_rule('/api/books', view_func=list_books, methods=['GET'])
     app.add_url_rule('/api/books/<int:book_id>', view_func=get_book, methods=['GET'])
+    app.add_url_rule('/api/books/<int:book_id>', view_func=update_book, methods=['PUT'])
+    app.add_url_rule('/api/books/<int:book_id>', view_func=delete_book, methods=['DELETE'])
 
     @app.route('/api/books', methods=['POST'])
     @login_required
@@ -392,6 +386,7 @@ def create_app():
 
     app.add_url_rule('/api/register', view_func=register_user, methods=['POST'])
     app.add_url_rule('/api/users/me', view_func=get_current_user_info, methods=['GET'])
+    app.add_url_rule('/api/users/me/books', view_func=get_my_books, methods=['GET'])
 
     app.add_url_rule('/api/exchanges', view_func=propose_exchange, methods=['POST'])
     app.add_url_rule('/api/exchanges', view_func=list_user_exchanges, methods=['GET'])
