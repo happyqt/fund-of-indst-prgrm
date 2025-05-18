@@ -1,4 +1,5 @@
 import React, {useState, useEffect} from 'react';
+import {Link} from 'react-router-dom';
 import {useAuth} from '../context/AuthContext';
 
 function BooksListPage() {
@@ -53,7 +54,10 @@ function BooksListPage() {
                 <ul>
                     {books.map(book => (
                         <li key={book.id}>
-                            <strong>{book.title}</strong> - <em>{book.author}</em> (Владелец: {book.owner_id})
+                            <Link to={`/books/${book.id}`} className="book-title-link">
+                                <strong>{book.title}</strong>
+                            </Link>
+                             - <em>{book.author}</em> ({book.is_available ? 'Доступна' : 'Недоступна'})
                         </li>
                     ))}
                 </ul>

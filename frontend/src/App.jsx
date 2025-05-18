@@ -11,6 +11,7 @@ import BooksListPage from './pages/BooksListPage';
 import MyBooksPage from './pages/MyBooksPage';
 import MyExchangesPage from './pages/MyExchangesPage';
 import AddBookPage from './pages/AddBookPage';
+import BookDetailPage from './pages/BookDetailPage';
 import AdminStatsPage from './pages/AdminStatsPage';
 import AdminBooksPage from './pages/AdminBooksPage';
 import AdminUsersPage from './pages/AdminUsersPage';
@@ -30,6 +31,7 @@ function App() {
                     <Route path="/login" element={<LoginPage/>}/>
                     <Route path="/register" element={<RegisterPage/>}/>
                     <Route path="/books" element={<BooksListPage/>}/>
+                    <Route path="/books/:book_id" element={<BookDetailPage/>}/>
 
                     {/* Защищенные маршруты (требуют аутентификации) */}
                     <Route path="/my-books" element={
@@ -49,7 +51,6 @@ function App() {
                     }/>
 
 
-                    {/* Административные маршруты (требуют прав администратора) */}
                     <Route path="/admin/stats" element={
                          <AdminProtectedRoute>
                             <AdminStatsPage/>

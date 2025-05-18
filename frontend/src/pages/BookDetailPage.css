@@ -1,0 +1,74 @@
+.book-detail-container {
+    max-width: 800px;
+    margin: 2rem auto;
+    padding: 2rem;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+    color: #333; /* Ensure text is readable on light background */
+}
+
+.book-detail-container h2 {
+    text-align: center;
+    margin-bottom: 1.5rem;
+    color: #007bff;
+}
+
+.book-detail-container p {
+    margin-bottom: 0.8rem;
+    line-height: 1.5;
+}
+
+.book-detail-container strong {
+    color: #555;
+}
+
+.reviews-list {
+    list-style: none;
+    padding: 0;
+    margin-top: 1.5rem;
+}
+
+.review-item {
+    border: 1px solid #eee;
+    border-radius: 4px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    background-color: #fff;
+}
+
+.review-item p {
+    margin: 0 0 0.5rem 0;
+}
+
+.review-item small {
+    color: #777;
+    font-size: 0.9em;
+}
+
+.book-detail-container hr {
+    margin: 2rem 0;
+    border: none;
+    border-top: 1px solid #eee;
+}
+
+.error-message {
+    color: red;
+    background-color: #ffebee;
+    border: 1px solid red;
+    padding: 0.75rem;
+    border-radius: 4px;
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+.book-title-link {
+    text-decoration: none;
+    color: #007bff;
+    transition: color 0.2s ease-in-out;
+}
+
+.book-title-link:hover {
+    color: #0056b3;
+    text-decoration: underline;
+}

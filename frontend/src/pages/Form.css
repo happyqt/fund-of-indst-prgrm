@@ -58,3 +58,43 @@
     margin-bottom: 1rem;
     text-align: center;
 }
+
+.success-message {
+    color: green;
+    background-color: #e8f5e9; /* Light green background */
+    border: 1px solid green;
+    padding: 0.75rem;
+    border-radius: 4px;
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+.form-container textarea {
+    width: calc(100% - 20px);
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-sizing: border-box;
+    resize: vertical;
+}
+
+.review-form-section {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background-color: #eef;
+    border: 1px solid #ccd;
+}
+
+.review-form-section h4 {
+    margin-top: 0;
+    color: #0056b3;
+}
+
+.review-form-section select {
+    padding: 0.5rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-bottom: 1rem;
+    display: block;
+    width: auto;
+}
