@@ -14,6 +14,9 @@ function BooksListPage() {
     const [activeTitleFilter, setActiveTitleFilter] = useState('');
     const [activeAuthorFilter, setActiveAuthorFilter] = useState('');
 
+    const {user, isAuthenticated, isLoading: authLoading} = useAuth();
+    const [showMyBooks, setShowMyBooks] = useState(true);
+
     const fetchBooks = useCallback(async () => {
         setLoading(true);
         setError(null);
@@ -51,8 +54,10 @@ function BooksListPage() {
     }, [activeTitleFilter, activeAuthorFilter]);
 
     useEffect(() => {
-        fetchBooks();
-    }, [fetchBooks]);
+        if (!authLoading) {
+            fetchBooks();
+        }
+    }, [fetchBooks, authLoading]);
 
     const handleApplyFilters = (event) => {
         event.preventDefault();
@@ -69,8 +74,11 @@ function BooksListPage() {
         }
     };
 
+    const displayedBooks = isAuthenticated && !showMyBooks
+        ? books.filter(book => book.owner_id !== user.id)
+        : books;
 
-    if (loading && books.length === 0) {
+    if (authLoading || (loading && books.length === 0)) {
         return <p>Загрузка книг...</p>;
     }
 
@@ -109,18 +117,40 @@ function BooksListPage() {
                 </div>
             </form>
 
+            {isAuthenticated && ( // только аутентифицированным пользователям
+                <div className="show-my-books-toggle">
+                    <label htmlFor="showMyBooksCheckbox">
+                        <input
+                            type="checkbox"
+                            id="showMyBooksCheckbox"
+                            checked={showMyBooks}
+                            onChange={(e) => setShowMyBooks(e.target.checked)}
+                        />
+                        Показывать мои книги в этом списке
+                    </label>
+                </div>
+            )}
+
             {loading && <p>Обновление списка книг...</p>}
 
-            {books.length === 0 && !loading ? (
-                <p>Нет доступных книг, соответствующих вашим фильтрам.</p>
+            {displayedBooks.length === 0 && !loading ? (
+                <p>
+                    Нет доступных книг, соответствующих вашим фильтрам
+                    {isAuthenticated && !showMyBooks && user ? " (ваши книги скрыты)" : ""}.
+                </p>
             ) : (
                 <ul className="books-ul">
-                    {books.map(book => (
+                    {displayedBooks.map(book => (
                         <li key={book.id} className="book-item">
-                            <Link to={`/books/${book.id}`} className="book-title-link">
-                                <strong>{book.title}</strong>
-                            </Link>
-                            <span> - <em>{book.author}</em></span>
+                            <div>
+                                <Link to={`/books/${book.id}`} className="book-title-link">
+                                    <strong>{book.title}</strong>
+                                </Link>
+                                <span> - <em>{book.author}</em></span>
+                                {isAuthenticated && user && book.owner_id === user.id && (
+                                    <span className="my-book-indicator"> (Моя книга)</span>
+                                )}
+                            </div>
                             <span className={book.is_available ? 'status-available' : 'status-unavailable'}>
                                 ({book.is_available ? 'Доступна' : 'Недоступна'})
                             </span>
