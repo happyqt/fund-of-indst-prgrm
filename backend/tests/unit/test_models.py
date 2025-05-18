@@ -1,4 +1,11 @@
 import unittest
+import os
+import sys
+
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
 from app.models.book import Book
 from app.models.user import User
 from app.models.exchange import Exchange
