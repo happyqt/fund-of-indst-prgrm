@@ -146,6 +146,11 @@ def create_app():
                         "requested_book_id": {
                             "type": "integer",
                             "description": "ID книги, которую текущий пользователь хочет получить"
+                        },
+                        "exchange_location": {
+                            "type": "string",
+                            "description": "Предполагаемое место обмена",
+                            "nullable": True
                         }
                     },
                     "required": ["proposed_book_id", "requested_book_id"]
@@ -164,7 +169,12 @@ def create_app():
                             "enum": ["pending", "accepted", "rejected", "cancelled"]
                         },
                         "created_at": {"type": "string", "format": "date-time", "readOnly": True},
-                        "updated_at": {"type": "string", "format": "date-time", "readOnly": True, "nullable": True}
+                        "updated_at": {"type": "string", "format": "date-time", "readOnly": True, "nullable": True},
+                        "exchange_location": {
+                            "type": "string",
+                            "description": "Место обмена",
+                            "nullable": True
+                        },
                     },
                     "required": [
                         "id", "proposing_user_id", "receiving_user_id",

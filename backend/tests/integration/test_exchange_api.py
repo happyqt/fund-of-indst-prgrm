@@ -77,7 +77,8 @@ def pending_exchange_u1_to_u2(client, db_session, users_and_books, user1_auth_he
     book1_user2 = users_and_books['book1_user2']
     payload = {
         "proposed_book_id": book1_user1.id,
-        "requested_book_id": book1_user2.id
+        "requested_book_id": book1_user2.id,
+        "exchange_location": "Central Library" # центральная, ну вы поняли да, смешно
     }
     response = client.post('/api/exchanges', json=payload, headers=user1_auth_headers)
 
@@ -92,7 +93,13 @@ def test_propose_exchange_success(client, db_session, users_and_books, user1_aut
     book1_user2 = users_and_books['book1_user2']
     user1 = users_and_books['user1']
     user2 = users_and_books['user2']
-    payload = {"proposed_book_id": book1_user1.id, "requested_book_id": book1_user2.id}
+
+    test_location = "Туалет на пятом этаже"
+    payload = {
+        "proposed_book_id": book1_user1.id,
+        "requested_book_id": book1_user2.id,
+        "exchange_location": test_location
+    }
     response = client.post('/api/exchanges', json=payload, headers=user1_auth_headers)
 
     assert response.status_code == 201
@@ -100,7 +107,14 @@ def test_propose_exchange_success(client, db_session, users_and_books, user1_aut
     assert data["proposing_user_id"] == user1.id
     assert data["receiving_user_id"] == user2.id
     assert data["status"] == "pending"
-    assert db_session.get(Exchange, data["id"]) is not None
+
+    assert "exchange_location" in data
+    assert data["exchange_location"] == test_location
+
+    exchange_in_db = db_session.get(Exchange, data["id"])
+
+    assert exchange_in_db is not None
+    assert exchange_in_db.exchange_location == test_location
 
 
 # pylint: disable=unused-argument

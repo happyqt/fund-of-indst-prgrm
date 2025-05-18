@@ -23,6 +23,7 @@ class Exchange(Base):
 
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, onupdate=func.now())
+    exchange_location = Column(String, nullable=True)
 
     proposing_user = relationship("User", foreign_keys=[proposing_user_id], back_populates="proposed_exchanges")
     receiving_user = relationship("User", foreign_keys=[receiving_user_id], back_populates="received_exchanges")
@@ -31,4 +32,5 @@ class Exchange(Base):
 
     def __repr__(self):
         return (f"<Exchange(id={self.id}, status='{self.status}', "
-                f"from_user={self.proposing_user_id} to_user={self.receiving_user_id})>")
+                f"from_user={self.proposing_user_id} to_user={self.receiving_user_id})>"
+                f"location='{self.exchange_location}')>")

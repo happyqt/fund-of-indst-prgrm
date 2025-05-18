@@ -16,6 +16,7 @@ def propose_exchange():
     Создать новое предложение обмена.
     Текущий пользователь предлагает одну из своих книг (proposed_book_id)
     в обмен на книгу другого пользователя (requested_book_id).
+    Можно указать предполагаемое место обмена (exchange_location).
     ---
     tags:
       - Exchanges
@@ -54,6 +55,7 @@ def propose_exchange():
 
     proposed_book_id = data.get('proposed_book_id')
     requested_book_id = data.get('requested_book_id')
+    exchange_location = data.get('exchange_location', None)
     proposing_user_id = g.current_user.id
 
     if proposed_book_id == requested_book_id:
@@ -93,7 +95,8 @@ def propose_exchange():
             receiving_user_id=receiving_user_id,
             proposed_book_id=proposed_book_id,
             requested_book_id=requested_book_id,
-            status='pending'
+            status='pending',
+            exchange_location=exchange_location
         )
         db.add(new_exchange)
         db.commit()
@@ -106,6 +109,7 @@ def propose_exchange():
             "proposed_book_id": new_exchange.proposed_book_id,
             "requested_book_id": new_exchange.requested_book_id,
             "status": new_exchange.status,
+            "exchange_location": new_exchange.exchange_location,
             "created_at": new_exchange.created_at.isoformat() if new_exchange.created_at else None,
             "updated_at": new_exchange.updated_at.isoformat() if new_exchange.updated_at else None
         }
@@ -184,6 +188,7 @@ def list_user_exchanges():
                 "proposed_book_id": ex.proposed_book_id,
                 "requested_book_id": ex.requested_book_id,
                 "status": ex.status,
+                "exchange_location": ex.exchange_location,
                 "created_at": ex.created_at.isoformat() if ex.created_at else None,
                 "updated_at": ex.updated_at.isoformat() if ex.updated_at else None
             })
@@ -330,6 +335,7 @@ def accept_exchange(exchange_id):
             "proposed_book_id": exchange.proposed_book_id,
             "requested_book_id": exchange.requested_book_id,
             "status": exchange.status,
+            "exchange_location": exchange.exchange_location,
             "created_at": exchange.created_at.isoformat() if exchange.created_at else None,
             "updated_at": exchange.updated_at.isoformat() if exchange.updated_at else None
         }
@@ -406,6 +412,7 @@ def reject_exchange(exchange_id):
             "proposed_book_id": exchange.proposed_book_id,
             "requested_book_id": exchange.requested_book_id,
             "status": exchange.status,
+            "exchange_location": exchange.exchange_location,
             "created_at": exchange.created_at.isoformat() if exchange.created_at else None,
             "updated_at": exchange.updated_at.isoformat() if exchange.updated_at else None
         }
@@ -487,6 +494,7 @@ def cancel_exchange_proposal(exchange_id):
             "proposed_book_id": exchange.proposed_book_id,
             "requested_book_id": exchange.requested_book_id,
             "status": exchange.status,
+            "exchange_location": exchange.exchange_location,
             "created_at": exchange.created_at.isoformat() if exchange.created_at else None,
             "updated_at": exchange.updated_at.isoformat() if exchange.updated_at else None
         }
