@@ -5,56 +5,12 @@ from app.database import engine, Base, SessionLocal
 from app.models.user import User  # Нужен для создания владельца книги
 from app.models.book import Book  # Нужен для проверки данных в БД
 from app.auth import hash_password
+from tests.integration.conftest import basic_auth_headers
 
-
-def basic_auth_headers(username, password):
-    credentials = f"{username}:{password}"
-    token = base64.b64encode(credentials.encode('utf-8')).decode('utf-8')
-    return {'Authorization': f'Basic {token}'}
-
-
-@pytest.fixture(scope="session")
-def app():
-    """Фикстура, предоставляющая экземпляр Flask приложения."""
-    # Создаем экземпляр приложения
-    flask_app = create_app()
-
-    yield flask_app
 
 
 @pytest.fixture(scope="function")
-def client(app):
-    """Фикстура, предоставляющая тестовый клиент Flask."""
-    with app.test_client() as client:
-        yield client
-
-
-@pytest.fixture(scope="function")
-def setup_teardown_db_per_test():
-    """
-    Фикстура для создания/удаления таблиц БД для каждого тестового сценария.
-    Также предоставляет сессию для добавления начальных данных теста.
-    """
-    print("\nНастройка БД для теста: Создание таблиц...")
-    Base.metadata.drop_all(bind=engine)
-    Base.metadata.create_all(bind=engine)
-    print("Таблицы созданы.")
-
-    # Предоставляем сессию для добавления данных перед выполнением теста
-    session = SessionLocal()
-    try:
-        yield session
-    finally:
-        # Закрываем сессию после выполнения теста
-        session.close()
-        print("Очистка БД после теста: Удаление таблиц...")
-        Base.metadata.drop_all(bind=engine)
-        print("Таблицы удалены.")
-
-
-@pytest.fixture(scope="function")
-def authenticated_user(setup_teardown_db_per_test):
-    db_session = setup_teardown_db_per_test
+def authenticated_user(db_session):
     username = "testauthuser"
     password = "testpassword"
 
@@ -68,7 +24,7 @@ def authenticated_user(setup_teardown_db_per_test):
     return user, auth_headers
 
 
-def test_get_books_empty(client, setup_teardown_db_per_test):
+def test_get_books_empty(client, db_session):
     """Проверка GET /api/books когда нет книг."""
     response = client.get('/api/books')  # Делаем GET запрос через тестовый клиент
 
@@ -78,9 +34,8 @@ def test_get_books_empty(client, setup_teardown_db_per_test):
     assert response.get_json() == []
 
 
-def test_add_book(client, setup_teardown_db_per_test, authenticated_user):
+def test_add_book(client, db_session, authenticated_user):
     """Проверка POST /api/books на успешное добавление книги."""
-    db_session = setup_teardown_db_per_test
     user, auth_headers = authenticated_user
 
     book_data_payload = {
@@ -107,7 +62,7 @@ def test_add_book(client, setup_teardown_db_per_test, authenticated_user):
     assert added_book.is_available is True
 
 
-def test_add_book_unauthenticated(client, setup_teardown_db_per_test):
+def test_add_book_unauthenticated(client, db_session):
     """Проверка POST /api/books без аутентификации."""
     book_data_payload = {
         "title": "Книга без аутентификации",
@@ -117,7 +72,7 @@ def test_add_book_unauthenticated(client, setup_teardown_db_per_test):
     assert response.status_code == 401
 
 
-def test_add_book_missing_fields(client, setup_teardown_db_per_test, authenticated_user):
+def test_add_book_missing_fields(client, db_session, authenticated_user):
     """Проверка POST /api/books с отсутствующими обязательными полями."""
     user, auth_headers = authenticated_user
 
@@ -140,9 +95,8 @@ def test_add_book_missing_fields(client, setup_teardown_db_per_test, authenticat
     assert "Missing required fields" in response.get_json().get("error", "")
 
 
-def test_get_book_existing(client, setup_teardown_db_per_test):
+def test_get_book_existing(client, db_session):
     """Проверка GET /api/books/{book_id} для существующей книги."""
-    db_session = setup_teardown_db_per_test
 
     owner_user = User(username="owner_get", email="owner_get@example.com", hashed_password=hash_password("aboba1337"))
     db_session.add(owner_user)
@@ -167,10 +121,11 @@ def test_get_book_existing(client, setup_teardown_db_per_test):
     assert response_json["is_available"] is True
 
 
-def test_get_book_not_found(client, setup_teardown_db_per_test):
+def test_get_book_not_found(client, db_session):
     """Проверка GET /api/books/{book_id} для несуществующей книги."""
     # DB пуста, книги с ID 999 нет
     response = client.get('/api/books/999')
 
     assert response.status_code == 404  # Ожидаем 404 Not Found
     assert "Book not found" in response.get_json().get("message", "")
+

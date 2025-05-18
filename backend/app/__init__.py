@@ -6,6 +6,13 @@ from app.models.book import Book
 from app.models.user import User
 from app.api.book_views import list_books, get_book
 from app.api.user_views import register_user, get_current_user_info
+from app.api.exchange_views import (
+    propose_exchange,
+    list_user_exchanges,
+    accept_exchange,
+    reject_exchange,
+    cancel_exchange_proposal
+)
 from app.auth import login_required, admin_required
 from flasgger import Swagger
 from sqlalchemy.exc import SQLAlchemyError
@@ -121,6 +128,47 @@ def create_app():
                     "properties": {
                         "message": {"type": "string"}
                     }
+                },
+                "ExchangeProposeRequest": {
+                    "type": "object",
+                    "properties": {
+                        "proposed_book_id": {
+                            "type": "integer",
+                            "description": "ID книги, которую предлагает текущий пользователь"
+                        },
+                        "requested_book_id": {
+                            "type": "integer",
+                            "description": "ID книги, которую текущий пользователь хочет получить"
+                        }
+                    },
+                    "required": ["proposed_book_id", "requested_book_id"]
+                },
+                "Exchange": {
+                    "type": "object",
+                    "properties": {
+                        "id": {"type": "integer", "readOnly": True},
+                        "proposing_user_id": {"type": "integer"},
+                        "receiving_user_id": {"type": "integer"},
+                        "proposed_book_id": {"type": "integer"},
+                        "requested_book_id": {"type": "integer"},
+                        "status": {
+                            "type": "string",
+                            "description": "Статус обмена (pending, accepted, rejected, cancelled)",
+                            "enum": ["pending", "accepted", "rejected", "cancelled"]
+                        },
+                        "created_at": {"type": "string", "format": "date-time", "readOnly": True},
+                        "updated_at": {"type": "string", "format": "date-time", "readOnly": True, "nullable": True}
+                    },
+                    "required": [
+                        "id", "proposing_user_id", "receiving_user_id",
+                        "proposed_book_id", "requested_book_id", "status", "created_at"
+                    ]
+                },
+                "ExchangeListResponse": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/components/schemas/Exchange"
+                    }
                 }
             },
             "responses": {
@@ -201,8 +249,54 @@ def create_app():
                             "schema": {"$ref": "#/components/schemas/User"}
                         }
                     }
+                },
+                "ExchangeCreated": {
+                    "description": "Предложение обмена успешно создано.",
+                    "content": {
+                        "application/json": {
+                            "schema": {"$ref": "#/components/schemas/Exchange"}
+                        }
+                    }
+                },
+                "ExchangeError": {
+                    "description": "Ошибка при обработке предложения обмена (например,"
+                                   " книга недоступна, принадлежит не тому пользователю и т.д.).",
+                    "content": {
+                        "application/json": {
+                            "schema": {"$ref": "#/components/schemas/MessageResponse"}
+                        }
+                    }
+                },
+                "ExchangeActionSuccess": {
+                    "description": "Действие над предложением обмена (принятие/отклонение) успешно выполнено.",
+                    "content": {
+                        "application/json": {
+                            "schema": {"$ref": "#/components/schemas/Exchange"}
+                        }
+                    }
+                },
+                "ExchangeActionForbidden": {
+                    "description": "Действие над предложением обмена запрещено"
+                                   " (например, пользователь не является получателем предложения,"
+                                   " или предложение не в статусе 'pending').",
+                    "content": {
+                        "application/json": {
+                            "schema": {"$ref": "#/components/schemas/MessageResponse"}
+                        }
+                    }
+                },
+                "ExchangeCancelForbidden": {
+                    "description": "Действие над предложением обмена запрещено "
+                                   "(например, пользователь не является отправителем"
+                                   " предложения, или предложение не в статусе 'pending').",
+                    "content": {
+                        "application/json": {
+                            "schema": {"$ref": "#/components/schemas/MessageResponse"}
+                        }
+                    }
                 }
             },
+
             "securitySchemes": {
                 "basicAuth": {
                     "type": "http",
@@ -212,19 +306,13 @@ def create_app():
         }
     }
 
-
-
-
-
-
-
-    with app.app_context():
-        print("Attempting to initialize database...")
-        try:
-            init_db()
-            print("Database initialization routine finished.")
-        except Exception as e:
-            print(f"Error during database initialization: {e}")
+    # with app.app_context():
+    #     print("Attempting to initialize database...")
+    #     try:
+    #         init_db()
+    #         print("Database initialization routine finished.")
+    #     except Exception as e:
+    #         print(f"Error during database initialization: {e}")
 
     app.add_url_rule('/api/books', view_func=list_books, methods=['GET'])
     app.add_url_rule('/api/books/<int:book_id>', view_func=get_book, methods=['GET'])
@@ -265,7 +353,7 @@ def create_app():
             if not data or not all(k in data for k in ('title', 'author')):
                 return jsonify({"error": "Missing required fields (title, author)"}), 400
 
-            owner_id = g.current_user.id
+            owner_id = g.current_user.id # курс говно я устал
 
             new_book = Book(
                 title=data['title'],
@@ -297,8 +385,15 @@ def create_app():
             db_generator.close()
 
     app.add_url_rule('/api/register', view_func=register_user, methods=['POST'])
-
     app.add_url_rule('/api/users/me', view_func=get_current_user_info, methods=['GET'])
+
+    app.add_url_rule('/api/exchanges', view_func=propose_exchange, methods=['POST'])
+    app.add_url_rule('/api/exchanges', view_func=list_user_exchanges, methods=['GET'])
+
+    app.add_url_rule('/api/exchanges/<int:exchange_id>/accept', view_func=accept_exchange, methods=['POST'])
+    app.add_url_rule('/api/exchanges/<int:exchange_id>/reject', view_func=reject_exchange, methods=['POST'])
+
+    app.add_url_rule('/api/exchanges/<int:exchange_id>/cancel', view_func=cancel_exchange_proposal, methods=['POST'])
 
     @app.route('/')
     def index():
