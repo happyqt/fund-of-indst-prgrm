@@ -2,8 +2,8 @@
 Модуль для реализации базовой аутентификации и авторизации
 """
 import base64
-from flask import request, jsonify, g
 from functools import wraps
+from flask import request, jsonify, g
 from werkzeug.security import generate_password_hash, check_password_hash
 from app.database import get_db  # Предполагаем, что get_db доступен
 from app.models.user import User  # Предполагаем, что модель User доступна

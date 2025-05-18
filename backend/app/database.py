@@ -12,6 +12,7 @@ SessionLocal = sessionmaker(bind=engine)
 
 
 def get_db():
+    """Создает и предоставляет сессию базы данных, обеспечивая ее закрытие после использования."""
     db = SessionLocal()
     try:
         yield db
@@ -20,5 +21,6 @@ def get_db():
 
 
 def init_db():
+    """Инициализирует базу данных, создавая все таблицы, определенные через SQLAlchemy Base.metadata."""
     Base.metadata.create_all(bind=engine)
     print("База данных инициализирована (таблицы созданы).")

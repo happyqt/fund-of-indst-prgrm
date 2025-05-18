@@ -1,8 +1,8 @@
-import datetime
-
+"""
+Модуль для обработки запросов, связанных с обменами.
+"""
 from flask import request, jsonify, g
 from app.database import get_db
-from app.models.user import User
 from app.models.book import Book
 from app.models.exchange import Exchange
 from app.auth import login_required
@@ -32,7 +32,8 @@ def propose_exchange():
       201:
         $ref: '#/components/responses/ExchangeCreated'
       400:
-        description: Некорректный запрос (например, книги совпадают, одна из книг принадлежит текущему пользователю, если он ее запрашивает)
+        description: Некорректный запрос (например, книги совпадают,
+        одна из книг принадлежит текущему пользователю, если он ее запрашивает)
         content:
           application/json:
             schema:
@@ -63,12 +64,6 @@ def propose_exchange():
     db = next(db_generator)
 
     try:
-        # print(f"[APP_DEBUG] propose_exchange: Trying to find proposed_book_id={proposed_book_id}")
-        # # Вывести все книги, которые видит сессия приложения, для отладки
-        # all_books_in_app_db = db.query(Book).all()
-        # print(
-        #     f"[APP_DEBUG] Books visible to app session: {[(b.id, b.title, b.owner_id, b.is_available) for b in all_books_in_app_db]}")
-
         proposed_book = db.query(Book).filter(Book.id == proposed_book_id, Book.is_available.is_(True)).first()
         if not proposed_book:
             return jsonify({"message": f"Предлагаемая книга с ID {proposed_book_id} не найдена или недоступна."}), 404
@@ -176,7 +171,8 @@ def list_user_exchanges():
             query = query.filter(or_(Exchange.proposing_user_id == user_id, Exchange.receiving_user_id == user_id))
         else:
             return jsonify({
-                "message": "Неверное значение для параметра 'type'. Допустимые значения: 'sent', 'received', 'all'."}), 400
+                "message": "Неверное значение для параметра 'type'."
+                           " Допустимые значения: 'sent', 'received', 'all'."}), 400
 
         exchanges = query.order_by(Exchange.created_at.desc()).all()
 
@@ -270,7 +266,8 @@ def accept_exchange(exchange_id):
             db.add(exchange)
             db.commit()
             return jsonify({
-                "message": f"Предлагаемая книга (ID: {exchange.proposed_book_id}) больше недоступна или не существует. Предложение отклонено."}), 409
+                "message": f"Предлагаемая книга (ID: {exchange.proposed_book_id}) больше недоступна или не существует."
+                           f" Предложение отклонено."}), 409
 
         if not requested_book:
             # Если запрашиваемая книга стала недоступна, отклоняем текущий обмен
@@ -278,7 +275,8 @@ def accept_exchange(exchange_id):
             db.add(exchange)
             db.commit()
             return jsonify({
-                "message": f"Запрашиваемая книга (ID: {exchange.requested_book_id}) больше недоступна или не существует. Предложение отклонено."}), 409
+                "message": f"Запрашиваемая книга (ID: {exchange.requested_book_id}) больше недоступна "
+                           f"или не существует. Предложение отклонено."}), 409
 
         # Проверка, что владельцы книг не изменились неожиданно
         if proposed_book.owner_id != exchange.proposing_user_id:
@@ -394,7 +392,8 @@ def reject_exchange(exchange_id):
 
         if exchange.status != 'pending':
             return jsonify({
-                "message": f"Предложение обмена не может быть отклонено, так как его текущий статус: '{exchange.status}'."}), 403
+                "message": f"Предложение обмена не может быть отклонено, так как его текущий статус: "
+                           f"'{exchange.status}'."}), 403
 
         exchange.status = 'rejected'
         db.add(exchange)
@@ -474,7 +473,8 @@ def cancel_exchange_proposal(exchange_id):
 
         if exchange.status != 'pending':
             return jsonify({
-                "message": f"Предложение обмена не может быть отменено, так как его текущий статус: '{exchange.status}'."}), 403
+                "message": f"Предложение обмена не может быть отменено, так как его текущий статус: "
+                           f"'{exchange.status}'."}), 403
 
         exchange.status = 'cancelled'
         db.add(exchange)

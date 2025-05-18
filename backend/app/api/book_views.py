@@ -1,9 +1,10 @@
-from flask import request, jsonify
+"""
+Модуль для обработки запросов, связанных с книгами.
+"""
+from flask import jsonify
 from app.database import get_db
 from app.models.book import Book
-from app.models.user import User
 from sqlalchemy.exc import SQLAlchemyError
-from app.auth import login_required
 
 
 def list_books():
@@ -26,7 +27,7 @@ def list_books():
     db_generator = get_db()
     db = next(db_generator)
     try:
-        books = db.query(Book).filter(Book.is_available == True).all()
+        books = db.query(Book).filter(Book.is_available is True).all()
         books_list = []
         for book in books:
             books_list.append({

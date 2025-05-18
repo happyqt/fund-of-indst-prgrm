@@ -1,12 +1,10 @@
+"""Интеграционные тесты для API работы с книгами."""
+# pylint: disable=redefined-outer-name
 import pytest
-import base64
-from app import create_app
-from app.database import engine, Base, SessionLocal
 from app.models.user import User  # Нужен для создания владельца книги
 from app.models.book import Book  # Нужен для проверки данных в БД
 from app.auth import hash_password
 from tests.integration.conftest import basic_auth_headers
-
 
 
 @pytest.fixture(scope="function")
@@ -128,4 +126,3 @@ def test_get_book_not_found(client, db_session):
 
     assert response.status_code == 404  # Ожидаем 404 Not Found
     assert "Book not found" in response.get_json().get("message", "")
-

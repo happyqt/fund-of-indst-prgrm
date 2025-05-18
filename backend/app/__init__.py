@@ -1,3 +1,4 @@
+"""Модуль для создания и настройки Flask-приложения сервиса обмена книгами."""
 import os
 import yaml
 from flask import Flask, jsonify, request, g
@@ -19,6 +20,11 @@ from sqlalchemy.exc import SQLAlchemyError
 
 
 def create_app():
+    """
+    Создает и конфигурирует экземпляр Flask-приложения.
+
+    Настраивает Swagger, привязывает URL-маршруты и возвращает готовое приложение.
+    """
     app = Flask(__name__)
     app.config['SWAGGER'] = {
         'title': 'OA3 Callbacks',
@@ -353,7 +359,7 @@ def create_app():
             if not data or not all(k in data for k in ('title', 'author')):
                 return jsonify({"error": "Missing required fields (title, author)"}), 400
 
-            owner_id = g.current_user.id # курс говно я устал
+            owner_id = g.current_user.id  # курс говно я устал
 
             new_book = Book(
                 title=data['title'],

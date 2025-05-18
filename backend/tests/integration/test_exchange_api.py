@@ -1,7 +1,6 @@
+"""Интеграционные тесты для API обмена книгами."""
+# pylint: disable=redefined-outer-name
 import pytest
-import base64
-from app import create_app
-from app.database import engine, Base, SessionLocal
 from app.models.user import User
 from app.models.book import Book
 from app.models.exchange import Exchange
@@ -11,16 +10,19 @@ from tests.integration.conftest import basic_auth_headers
 
 @pytest.fixture
 def user1_data():
+    """Фикстура с данными для первого тестового пользователя."""
     return {"username": "user1", "password": "password1", "email": "user1@example.com"}
 
 
 @pytest.fixture
 def user2_data():
+    """Фикстура с данными для второго тестового пользователя."""
     return {"username": "user2", "password": "password2", "email": "user2@example.com"}
 
 
 @pytest.fixture
 def user3_data():
+    """Фикстура с данными для третьего тестового пользователя."""
     return {"username": "user3", "password": "password3", "email": "user3@example.com"}
 
 
@@ -44,40 +46,30 @@ def create_user(db_session):
 
 
 @pytest.fixture
-def user1(create_user, user1_data):
-    return create_user(**user1_data)
-
-
-@pytest.fixture
-def user2(create_user, user2_data):
-    return create_user(**user2_data)
-
-
-@pytest.fixture
-def user3(create_user, user3_data):
-    return create_user(**user3_data)
-
-
-@pytest.fixture
 def user1_auth_headers(user1_data):
+    """Заголовки авторизации для пользователя 1."""
     return basic_auth_headers(user1_data["username"], user1_data["password"])
 
 
 @pytest.fixture
 def user2_auth_headers(user2_data):
+    """Заголовки авторизации для пользователя 2."""
     return basic_auth_headers(user2_data["username"], user2_data["password"])
 
 
 @pytest.fixture
 def user3_auth_headers(user3_data):
+    """Заголовки авторизации для пользователя 3."""
     return basic_auth_headers(user3_data["username"], user3_data["password"])
 
 
 @pytest.fixture
+# pylint: disable=unused-argument
 def create_book(db_session):
     """Фикстура для создания книги в БД."""
 
     def _create_book(title, author, owner_id, description="Test book desc", is_available=True):
+        """Функция-фабрика для создания книги."""
         book = Book(
             title=title,
             author=author,
@@ -94,33 +86,36 @@ def create_book(db_session):
 
 
 @pytest.fixture
-def book1_user1(create_book, user1):
-    return create_book("Book1 by User1", "Author1", user1.id)
+def users_and_books(create_user, user1_data, user2_data, user3_data, create_book):
+    """Создает тестовых пользователей и набор книг для них."""
+    user1 = create_user(**user1_data)
+    user2 = create_user(**user2_data)
+    user3 = create_user(**user3_data)
+
+    book1_user1 = create_book("Book1 by User1", "Author1", user1.id)
+    book2_user1 = create_book("Book2 by User1", "Author1", user1.id)
+    book1_user2 = create_book("Book1 by User2", "Author2", user2.id)
+    book2_user2 = create_book("Book2 by User2", "Author2", user2.id)
+    book1_user3 = create_book("Book1 by User3", "Author3", user3.id)
+
+    return {
+        'user1': user1,
+        'user2': user2,
+        'user3': user3,
+        'book1_user1': book1_user1,
+        'book2_user1': book2_user1,
+        'book1_user2': book1_user2,
+        'book2_user2': book2_user2,
+        'book1_user3': book1_user3,
+    }
 
 
 @pytest.fixture
-def book2_user1(create_book, user1):
-    return create_book("Book2 by User1", "Author1", user1.id)
-
-
-@pytest.fixture
-def book1_user2(create_book, user2):
-    return create_book("Book1 by User2", "Author2", user2.id)
-
-
-@pytest.fixture
-def book2_user2(create_book, user2):
-    return create_book("Book2 by User2", "Author2", user2.id)
-
-
-@pytest.fixture
-def book1_user3(create_book, user3):
-    return create_book("Book1 by User3", "Author3", user3.id)
-
-
-@pytest.fixture
-def pending_exchange_u1_to_u2(client, db_session, user1, user2, book1_user1, book1_user2, user1_auth_headers):
+# pylint: disable=unused-argument
+def pending_exchange_u1_to_u2(client, db_session, users_and_books, user1_auth_headers):
     """Создает запрос обмена от user1 к user2"""
+    book1_user1 = users_and_books['book1_user1']
+    book1_user2 = users_and_books['book1_user2']
     payload = {
         "proposed_book_id": book1_user1.id,
         "requested_book_id": book1_user2.id
@@ -132,8 +127,12 @@ def pending_exchange_u1_to_u2(client, db_session, user1, user2, book1_user1, boo
     return response_json
 
 
-def test_propose_exchange_success(client, db_session, user1, user2, book1_user1, book1_user2, user1_auth_headers):
+def test_propose_exchange_success(client, db_session, users_and_books, user1_auth_headers):
     """Проверка успешного создания предложения обмена."""
+    book1_user1 = users_and_books['book1_user1']
+    book1_user2 = users_and_books['book1_user2']
+    user1 = users_and_books['user1']
+    user2 = users_and_books['user2']
     payload = {"proposed_book_id": book1_user1.id, "requested_book_id": book1_user2.id}
     response = client.post('/api/exchanges', json=payload, headers=user1_auth_headers)
 
@@ -145,10 +144,13 @@ def test_propose_exchange_success(client, db_session, user1, user2, book1_user1,
     assert db_session.get(Exchange, data["id"]) is not None
 
 
-def test_propose_exchange_invalid_scenarios(client, db_session, user1, book1_user1,
-                                            book2_user1, book1_user2, user1_auth_headers):
+# pylint: disable=unused-argument
+def test_propose_exchange_invalid_scenarios(client, db_session, users_and_books, user1_auth_headers):
     """Проверка различных невалидных сценариев при предложении обмена."""
-
+    user1 = users_and_books['user1']
+    book1_user1 = users_and_books['book1_user1']
+    book2_user1 = users_and_books['book2_user1']
+    book1_user2 = users_and_books['book1_user2']
     # Попытка обменять свою книгу на свою же другую книгу
     payload_own_for_own = {"proposed_book_id": book1_user1.id, "requested_book_id": book2_user1.id}
     response = client.post('/api/exchanges', json=payload_own_for_own, headers=user1_auth_headers)
@@ -176,18 +178,25 @@ def test_propose_exchange_invalid_scenarios(client, db_session, user1, book1_use
     assert response.status_code == 404
 
 
-def test_propose_exchange_duplicate_pending(client, user1, book1_user1, book1_user2, user1_auth_headers,
+# pylint: disable=unused-argument
+def test_propose_exchange_duplicate_pending(client, users_and_books, user1_auth_headers,
                                             pending_exchange_u1_to_u2):
     """Проверка ошибки при создании дублирующего активного предложения обмена."""
     # pending_exchange_user1_to_user2 уже создал первое предложение
+    book1_user1 = users_and_books['book1_user1']
+    book1_user2 = users_and_books['book1_user2']
     payload = {"proposed_book_id": book1_user1.id, "requested_book_id": book1_user2.id}
     response = client.post('/api/exchanges', json=payload, headers=user1_auth_headers)
     assert response.status_code == 409
 
 
-def test_list_user_exchanges_filtered(client, db_session, user1, user2, book1_user1, book1_user2, book2_user1,
+def test_list_user_exchanges_filtered(client, db_session, users_and_books,
                                       user1_auth_headers, user2_auth_headers):
     """Проверка получения списка обменов с фильтрацией (sent, received, all)."""
+    user1 = users_and_books['user1']
+    book1_user1 = users_and_books['book1_user1']
+    book2_user1 = users_and_books['book2_user1']
+    book1_user2 = users_and_books['book1_user2']
     # User1 -> User2
     client.post('/api/exchanges', json={"proposed_book_id": book1_user1.id, "requested_book_id": book1_user2.id},
                 headers=user1_auth_headers)
@@ -215,9 +224,13 @@ def test_list_user_exchanges_filtered(client, db_session, user1, user2, book1_us
     assert exchanges_received[0]["receiving_user_id"] == user1.id
 
 
-def test_accept_exchange_success_and_book_state_change(client, db_session, user1, user2, book1_user1, book1_user2,
+def test_accept_exchange_success_and_book_state_change(client, db_session, users_and_books,
                                                        user2_auth_headers, pending_exchange_u1_to_u2):
     """Проверка успешного принятия обмена и изменения состояния книг."""
+    user1 = users_and_books['user1']
+    user2 = users_and_books['user2']
+    book1_user1 = users_and_books['book1_user1']
+    book1_user2 = users_and_books['book1_user2']
     exchange_id = pending_exchange_u1_to_u2["id"]
 
     response = client.post(f'/api/exchanges/{exchange_id}/accept', headers=user2_auth_headers)
@@ -233,8 +246,9 @@ def test_accept_exchange_success_and_book_state_change(client, db_session, user1
     assert exchange_in_db.status == "accepted"
 
 
+# pylint: disable=unused-argument
 def test_accept_exchange_negative_cases(client, db_session, user1_auth_headers, user2_auth_headers,
-                                        pending_exchange_u1_to_u2, book1_user1):
+                                        pending_exchange_u1_to_u2, users_and_books):
     """Проверка негативных сценариев при принятии обмена."""
     exchange_id = pending_exchange_u1_to_u2["id"]
 
@@ -248,9 +262,11 @@ def test_accept_exchange_negative_cases(client, db_session, user1_auth_headers, 
     assert response_already_accepted.status_code == 403
 
 
+# pylint: disable=unused-argument
 def test_accept_exchange_when_book_unavailable(client, db_session, user2_auth_headers,
-                                               pending_exchange_u1_to_u2, book1_user1):
+                                               pending_exchange_u1_to_u2, users_and_books):
     """Проверка принятия обмена, если одна из книг стала недоступна."""
+    book1_user1 = users_and_books['book1_user1']
     exchange_id = pending_exchange_u1_to_u2["id"]
     book1_user1.is_available = False
     db_session.add(book1_user1)
@@ -264,6 +280,7 @@ def test_accept_exchange_when_book_unavailable(client, db_session, user2_auth_he
     assert exchange_in_db.status == "rejected"
 
 
+# pylint: disable=unused-argument
 def test_reject_exchange_success(client, db_session, user2_auth_headers, pending_exchange_u1_to_u2):
     """Проверка успешного отклонения обмена."""
     exchange_id = pending_exchange_u1_to_u2["id"]
@@ -276,6 +293,7 @@ def test_reject_exchange_success(client, db_session, user2_auth_headers, pending
     assert exchange_in_db.status == "rejected"
 
 
+# pylint: disable=unused-argument
 def test_reject_exchange_not_receiver(client, user1_auth_headers, pending_exchange_u1_to_u2):
     """Проверка ошибки при попытке отклонить обмен не получателем."""
     exchange_id = pending_exchange_u1_to_u2["id"]
@@ -283,6 +301,7 @@ def test_reject_exchange_not_receiver(client, user1_auth_headers, pending_exchan
     assert response.status_code == 403
 
 
+# pylint: disable=unused-argument
 def test_cancel_exchange_success(client, db_session, user1_auth_headers, pending_exchange_u1_to_u2):
     """Проверка успешной отмены своего предложения обмена."""
     exchange_id = pending_exchange_u1_to_u2["id"]
@@ -295,6 +314,7 @@ def test_cancel_exchange_success(client, db_session, user1_auth_headers, pending
     assert exchange_in_db.status == "cancelled"
 
 
+# pylint: disable=unused-argument
 def test_cancel_exchange_not_proposer(client, user2_auth_headers, pending_exchange_u1_to_u2):
     """Проверка ошибки при попытке отменить чужое предложение обмена."""
     exchange_id = pending_exchange_u1_to_u2["id"]
@@ -302,9 +322,13 @@ def test_cancel_exchange_not_proposer(client, user2_auth_headers, pending_exchan
     assert response.status_code == 403
 
 
-def test_accept_exchange_rejects_conflicting(client, db_session, user1, user2, user3, book1_user1, book1_user2,
-                                             book1_user3, user1_auth_headers, user2_auth_headers, user3_auth_headers):
+# pylint: disable=unused-argument
+def test_accept_exchange_rejects_conflicting(client, db_session, users_and_books,
+                                             user1_auth_headers, user2_auth_headers, user3_auth_headers):
     """Проверка, что принятие одного обмена отклоняет конфликтующие предложения."""
+    book1_user1 = users_and_books['book1_user1']  # Книга user1
+    book1_user2 = users_and_books['book1_user2']  # Книга user2
+    book1_user3 = users_and_books['book1_user3']  # Книга user3
     # User1 предлагает book1_user1 за book1_user2 (user2)
     resp1 = client.post('/api/exchanges',
                         json={"proposed_book_id": book1_user1.id, "requested_book_id": book1_user2.id},

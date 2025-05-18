@@ -1,12 +1,13 @@
+"""Модуль определения модели пользователя"""
 from sqlalchemy import Column, Integer, String, Boolean
 from sqlalchemy.orm import relationship
 from app.database import Base
 
 
-"""
-Определение модели пользователя
-"""
 class User(Base):
+    """
+    Определение модели пользователя
+    """
     __tablename__ = 'users'
 
     id = Column(Integer, primary_key=True)

@@ -1,10 +1,9 @@
+"""Модуль общих конфигураций для тестов"""
+# pylint: disable=redefined-outer-name
 import pytest
 import base64
 from app import create_app
 from app.database import engine, Base, SessionLocal
-from app.models.user import User
-from app.models.book import Book
-from app.auth import hash_password
 
 
 def basic_auth_headers(username, password):

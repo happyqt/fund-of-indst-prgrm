@@ -1,12 +1,13 @@
+"""Модуль определения модели книги"""
 from sqlalchemy import Column, Integer, String, ForeignKey, Boolean, Text
 from sqlalchemy.orm import relationship
 from app.database import Base
 
 
-"""
-Определение модели книги
-"""
 class Book(Base):
+    """
+    Определение модели книги
+    """
     __tablename__ = 'books'
 
     id = Column(Integer, primary_key=True, index=True)

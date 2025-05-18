@@ -1,12 +1,14 @@
+"""Модуль определения модели обмена"""
 from sqlalchemy import Column, Integer, ForeignKey, String, DateTime
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.database import Base
 
-"""
-Определение модели обмена
-"""
+
 class Exchange(Base):
+    """
+    Определение модели обмена
+    """
     __tablename__ = 'exchanges'
 
     id = Column(Integer, primary_key=True, index=True)
@@ -28,4 +30,5 @@ class Exchange(Base):
     requested_book = relationship("Book", foreign_keys=[requested_book_id])
 
     def __repr__(self):
-        return f"<Exchange(id={self.id}, status='{self.status}', from_user={self.proposing_user_id} to_user={self.receiving_user_id})>"
+        return (f"<Exchange(id={self.id}, status='{self.status}', "
+                f"from_user={self.proposing_user_id} to_user={self.receiving_user_id})>")
