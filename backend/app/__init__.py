@@ -15,6 +15,11 @@ from app.api.exchange_views import (
     reject_exchange,
     cancel_exchange_proposal
 )
+from app.api.admin_views import (
+    get_exchange_stats,
+    list_all_books_admin,
+    list_all_users_admin
+)
 from app.auth import login_required, admin_required
 from flasgger import Swagger
 from sqlalchemy.exc import SQLAlchemyError
@@ -452,6 +457,10 @@ def create_app():
     app.add_url_rule('/api/books/<int:book_id>/reviews', view_func=create_review_for_book, methods=['POST'])
     app.add_url_rule('/api/books/<int:book_id>/reviews', view_func=get_reviews_for_book, methods=['GET'])
 
+    app.add_url_rule('/api/admin/exchanges/stats', view_func=get_exchange_stats, methods=['GET'])
+    app.add_url_rule('/api/admin/books', view_func=list_all_books_admin, methods=['GET'])
+    app.add_url_rule('/api/admin/users', view_func=list_all_users_admin, methods=['GET'])
+    
     @app.route('/')
     def index():
         return "Backend is running!"
