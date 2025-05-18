@@ -1,0 +1,12 @@
+stages:
+  - test
+
+unit-tests:
+  stage: test
+  image: python:3.9-slim
+  tags:
+    - students-buildkit-medium
+  script:
+    - export HOME=$CI_PROJECT_DIR
+    - pip install -r backend/requirements.txt
+    - python -m unittest discover -s backend/tests/unit
