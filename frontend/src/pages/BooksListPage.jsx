@@ -1,4 +1,5 @@
 import React, {useState, useEffect} from 'react';
+import {useAuth} from '../context/AuthContext';
 
 function BooksListPage() {
     const [books, setBooks] = useState([]);
@@ -6,14 +7,34 @@ function BooksListPage() {
     const [error, setError] = useState(null);
 
     useEffect(() => {
-        const mockBooks = [
-            {id: 1, title: "Книга 1", author: "Автор 1", owner_id: 1, is_available: true},
-            {id: 2, title: "Книга 2", author: "Автор 2", owner_id: 2, is_available: true},
-            {id: 3, title: "Книга 3", author: "Автор 1", owner_id: 1, is_available: false},
-        ];
-        setBooks(mockBooks.filter(book => book.is_available));
-        setLoading(false);
+        const fetchBooks = async () => {
+            try {
+                const response = await fetch('/api/books', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                });
+
+                if (!response.ok) {
+                    // парсим ошибку
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || `Ошибка загрузки книг: ${response.status}`);
+                }
+
+                const data = await response.json();
+                setBooks(data);
+            } catch (err) {
+                console.error("Failed to fetch books:", err);
+                setError(err.message);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchBooks();
     }, []);
+
 
     if (loading) {
         return <p>Загрузка книг...</p>;
@@ -32,7 +53,7 @@ function BooksListPage() {
                 <ul>
                     {books.map(book => (
                         <li key={book.id}>
-                            <strong>{book.title}</strong> - <em>{book.author}</em>
+                            <strong>{book.title}</strong> - <em>{book.author}</em> (Владелец: {book.owner_id})
                         </li>
                     ))}
                 </ul>
