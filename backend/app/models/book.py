@@ -18,6 +18,7 @@ class Book(Base):
     is_available = Column(Boolean, default=True)
 
     owner = relationship("User", back_populates="books")
+    reviews = relationship("Review", back_populates="book", cascade="all, delete-orphan")
 
     proposing_exchange_entries = relationship("Exchange", foreign_keys="[Exchange.proposed_book_id]", viewonly=True)
     receiving_exchange_entries = relationship("Exchange", foreign_keys="[Exchange.requested_book_id]", viewonly=True)

@@ -7,6 +7,7 @@ from app.models.book import Book
 from app.models.user import User
 from app.api.book_views import list_books, get_book, update_book, delete_book
 from app.api.user_views import register_user, get_current_user_info, get_my_books
+from app.api.review_views import create_review_for_book, get_reviews_for_book
 from app.api.exchange_views import (
     propose_exchange,
     list_user_exchanges,
@@ -174,6 +175,48 @@ def create_app():
                     "type": "array",
                     "items": {
                         "$ref": "#/components/schemas/Exchange"
+                    }
+                },
+                "ReviewUserResponse": {
+                    "type": "object",
+                    "properties": {
+                        "id": {"type": "integer"},
+                        "username": {"type": "string"}
+                    },
+                    "required": ["id", "username"]
+                },
+                "ReviewCreateRequest": {
+                    "type": "object",
+                    "properties": {
+                        "rating": {
+                            "type": "integer",
+                            "description": "Оценка от 1 до 5"
+                        },
+                        "text": {
+                            "type": "string",
+                            "description": "Текст отзыва",
+                            "nullable": True
+                        }
+                    },
+                    "required": ["rating"]
+                },
+                "ReviewResponse": {
+                    "type": "object",
+                    "properties": {
+                        "id": {"type": "integer", "readOnly": True},
+                        "book_id": {"type": "integer"},
+                        "user": {"$ref": "#/components/schemas/ReviewUserResponse"},
+                        "rating": {"type": "integer"},
+                        "text": {"type": "string", "nullable": True},
+                        "created_at": {"type": "string", "format": "date-time", "readOnly": True},
+                        "updated_at": {"type": "string", "format": "date-time", "readOnly": True, "nullable": True}
+                    },
+                    "required": ["id", "book_id", "user", "rating", "created_at"]
+                },
+                "ReviewListResponse": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/components/schemas/ReviewResponse"
                     }
                 }
             },
@@ -395,6 +438,9 @@ def create_app():
     app.add_url_rule('/api/exchanges/<int:exchange_id>/reject', view_func=reject_exchange, methods=['POST'])
 
     app.add_url_rule('/api/exchanges/<int:exchange_id>/cancel', view_func=cancel_exchange_proposal, methods=['POST'])
+
+    app.add_url_rule('/api/books/<int:book_id>/reviews', view_func=create_review_for_book, methods=['POST'])
+    app.add_url_rule('/api/books/<int:book_id>/reviews', view_func=get_reviews_for_book, methods=['GET'])
 
     @app.route('/')
     def index():

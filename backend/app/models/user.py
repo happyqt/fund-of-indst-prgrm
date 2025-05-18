@@ -22,5 +22,7 @@ class User(Base):
     received_exchanges = relationship("Exchange", foreign_keys="[Exchange.receiving_user_id]",
                                       back_populates="receiving_user")
 
+    reviews = relationship("Review", back_populates="user", cascade="all, delete-orphan")
+
     def __repr__(self):
         return f"<User(id={self.id}, username='{self.username}', email='{self.email}')>"
