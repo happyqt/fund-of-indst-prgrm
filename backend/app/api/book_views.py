@@ -6,17 +6,31 @@ from app.database import get_db
 from app.models.book import Book
 from app.models.exchange import Exchange
 from app.auth import login_required
-from sqlalchemy import or_
+from sqlalchemy import or_, func
 from sqlalchemy.exc import SQLAlchemyError
 
 
 def list_books():
     """
     Получить список доступных книг.
+    Позволяет фильтровать по названию (title) и автору (author) по частичному совпадению без регистра
     ---
     tags:
       - Books
-    summary: Получить список доступных книг
+    summary: Получить список доступных книг с возможностью фильтрации
+    parameters:
+      - name: title
+        in: query
+        required: false
+        description: Часть названия книги для поиска
+        schema:
+          type: string
+      - name: author
+        in: query
+        required: false
+        description: Часть имени автора для поиска
+        schema:
+          type: string
     responses:
       200:
         description: Список доступных книг.
@@ -30,7 +44,19 @@ def list_books():
     db_generator = get_db()
     db = next(db_generator)
     try:
-        books = db.query(Book).filter(Book.is_available is True).all()
+        query = db.query(Book).filter(Book.is_available.is_(True))
+
+        title_filter = request.args.get('title')
+        author_filter = request.args.get('author')
+
+        if title_filter:
+            query = query.filter(func.lower(Book.title).contains(func.lower(title_filter)))
+
+        if author_filter:
+            query = query.filter(func.lower(Book.author).contains(func.lower(author_filter)))
+
+        books = query.all()
+
         books_list = []
         for book in books:
             books_list.append({

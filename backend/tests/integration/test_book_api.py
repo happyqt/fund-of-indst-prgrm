@@ -338,3 +338,86 @@ def test_delete_book_not_found(client, authenticated_user):
     _user, auth_headers = authenticated_user
     response = client.delete('/api/books/8888', headers=auth_headers)
     assert response.status_code == 404
+
+
+def test_get_books_with_filters(client, db_session, create_user, create_book):
+    """Проверка GET /api/books с различными фильтрами."""
+    owner = create_user(username="filter_owner", password="password", email="filter@owner.com")
+
+    book1 = create_book(title="Python Programming", author="John Doe", owner_id=owner.id)
+    book2 = create_book(title="Advanced Python", author="Jane Doe", owner_id=owner.id)
+    book3 = create_book(title="Web Development with Flask", author="John Smith", owner_id=owner.id)
+    book4 = create_book(title="Data Science Handbook", author="Peter Pan", owner_id=owner.id, is_available=False)
+
+    # Фильтр по названию (должен найти book1 и book2)
+    response = client.get('/api/books?title=Python')
+    assert response.status_code == 200
+    data = response.get_json()
+    assert len(data) == 2
+    titles = {item['title'] for item in data}
+    assert book1.title in titles
+    assert book2.title in titles
+
+    # Фильтр по названию (регистр)
+    response = client.get('/api/books?title=python')
+    assert response.status_code == 200
+    data = response.get_json()
+    assert len(data) == 2
+    titles = {item['title'] for item in data}
+    assert book1.title in titles
+    assert book2.title in titles
+
+    # Фильтр по автору
+    response = client.get('/api/books?author=Doe')
+    assert response.status_code == 200
+    data = response.get_json()
+    assert len(data) == 2  # Предполагаем, что Jane Doe и John Doe
+    authors = {item['author'] for item in data}
+    assert book1.author in authors
+    assert book2.author in authors
+
+    # Фильтр по названию и автору (должен найти book1)
+    response = client.get('/api/books?title=Python&author=John Doe')
+    assert response.status_code == 200
+    data = response.get_json()
+    assert len(data) == 1
+    assert data[0]['title'] == book1.title
+    assert data[0]['author'] == book1.author
+
+    # Фильтр по части названия (должен найти book3)
+    response = client.get('/api/books?title=Flask')
+    assert response.status_code == 200
+    data = response.get_json()
+    assert len(data) == 1
+    assert data[0]['title'] == book3.title
+
+    # Фильтр, который ничего не находит
+    response = client.get('/api/books?title=NonExistentBook')
+    assert response.status_code == 200
+    assert response.get_json() == []
+
+    # Фильтр по автору, который ничего не находит
+    response = client.get('/api/books?author=Nobody')
+    assert response.status_code == 200
+    assert response.get_json() == []
+
+    # Проверка, что недоступные книги не возвращаются даже с фильтром
+    response = client.get('/api/books?title=Data Science')
+    assert response.status_code == 200
+    assert response.get_json() == []
+
+
+def test_get_books_no_filters_returns_all_available(client, db_session, create_user, create_book):
+    """Проверка, что GET /api/books без фильтров возвращает все доступные книги."""
+    owner = create_user(username="all_owner", password="password", email="all@owner.com")
+    book1 = create_book(title="Available Book 1", author="Author A", owner_id=owner.id, is_available=True)
+    book2 = create_book(title="Available Book 2", author="Author B", owner_id=owner.id, is_available=True)
+    create_book(title="Unavailable Book", author="Author C", owner_id=owner.id, is_available=False)
+
+    response = client.get('/api/books')
+    assert response.status_code == 200
+    data = response.get_json()
+    assert len(data) == 2
+    titles = {item['title'] for item in data}
+    assert book1.title in titles
+    assert book2.title in titles
