@@ -1,0 +1,130 @@
+.books-list-container {
+    max-width: 800px;
+    margin: 2rem auto;
+    padding: 1.5rem;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    color: #333;
+}
+
+.books-list-container h2 {
+    text-align: center;
+    margin-bottom: 1.5rem;
+    color: #007bff;
+}
+
+.filter-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    padding: 1rem;
+    background-color: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.filter-input {
+    padding: 0.6rem 0.8rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 0.95rem;
+}
+
+.filter-input:focus {
+    border-color: #007bff;
+    outline: none;
+    box-shadow: 0 0 0 0.1rem rgba(0, 123, 255, 0.25);
+}
+
+.filter-actions {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: flex-start;
+}
+
+.filter-button {
+    padding: 0.6rem 1.2rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    transition: background-color 0.2s;
+    color: white;
+}
+
+.filter-button.apply {
+    background-color: #007bff;
+}
+
+.filter-button.apply:hover {
+    background-color: #0056b3;
+}
+
+.filter-button.clear {
+    background-color: #6c757d;
+}
+
+.filter-button.clear:hover {
+    background-color: #545b62;
+}
+
+.books-ul {
+    list-style: none;
+    padding: 0;
+}
+
+.book-item {
+    padding: 0.75rem 0.5rem;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.book-item:last-child {
+    border-bottom: none;
+}
+
+.book-title-link {
+    text-decoration: none;
+    color: #007bff;
+    font-weight: bold;
+}
+
+.book-title-link:hover {
+    color: #0056b3;
+    text-decoration: underline;
+}
+
+.book-item em {
+    color: #555;
+}
+
+.status-available {
+    color: #28a745;
+    font-weight: bold;
+    margin-left: 0.5rem;
+}
+
+.status-unavailable {
+    color: #dc3545;
+    font-weight: bold;
+    margin-left: 0.5rem;
+}
+
+.error-message {
+    color: #D8000C;
+    background-color: #FFD2D2;
+    border: 1px solid #D8000C;
+    padding: 0.75rem;
+    border-radius: 4px;
+    margin: 1rem 0;
+    text-align: center;
+}
+
