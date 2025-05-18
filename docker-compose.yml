@@ -40,4 +40,4 @@ services:
       - ./backend:/app
     depends_on:
       - db
-    command: ["sh", "-c", "PYTHONPATH=/app pytest tests/"]
+    command: [ "sh", "-c", "PYTHONPATH=/app pytest tests/ && python /app/reinitialize_db_schema.py" ]

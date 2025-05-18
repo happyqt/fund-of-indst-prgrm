@@ -1,14 +1,52 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
+import {useNavigate} from 'react-router-dom';
+import {useAuth} from '../context/AuthContext';
 import './Form.css';
 
 function RegisterPage() {
     const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [error, setError] = useState(null);
+    const [loading, setLoading] = useState(false);
+    const {isAuthenticated} = useAuth(); // Проверить, если уже вошел
 
-    const handleSubmit = (event) => {
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        if (isAuthenticated) {
+            navigate("/");
+        }
+    }, [isAuthenticated, navigate]);
+
+    const handleSubmit = async (event) => {
         event.preventDefault();
-        console.log('Register attempt:', {username, email, password});
+        setError(null);
+        setLoading(true);
+
+        try {
+            const response = await fetch('/api/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({username, email, password}),
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                alert(data.message + " Теперь вы можете войти."); // Временно
+                navigate('/login');
+            } else {
+                setError(data.error || data.message || `Ошибка регистрации: ${response.status}`);
+            }
+        } catch (err) {
+            console.error("Registration error:", err);
+            setError('Произошла ошибка при регистрации. Пожалуйста, попробуйте снова.');
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -23,6 +61,7 @@ function RegisterPage() {
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
                         required
+                        disabled={loading}
                     />
                 </div>
                 <div>
@@ -33,6 +72,7 @@ function RegisterPage() {
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         required
+                        disabled={loading}
                     />
                 </div>
                 <div>
@@ -43,9 +83,13 @@ function RegisterPage() {
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         required
+                        disabled={loading}
                     />
                 </div>
-                <button type="submit">Зарегистрироваться</button>
+                {error && <p className="error-message">{error}</p>}
+                <button type="submit" disabled={loading}>
+                    {loading ? 'Регистрация...' : 'Зарегистрироваться'}
+                </button>
             </form>
         </div>
     );

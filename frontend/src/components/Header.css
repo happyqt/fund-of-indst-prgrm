@@ -1,7 +1,20 @@
 .app-header {
     background-color: #333;
-    padding: 1rem 0;
+    padding: 1rem 2rem;
     margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo-link {
+    text-decoration: none;
+}
+
+.app-header h1 {
+    color: white;
+    margin: 0;
+    font-size: 1.8rem;
 }
 
 .nav-links {
@@ -9,19 +22,33 @@
     padding: 0;
     margin: 0;
     display: flex;
-    justify-content: center;
+    align-items: center;
 }
 
 .nav-links li {
-    margin: 0 15px;
+    margin: 0 10px;
 }
 
-.nav-links a {
+.nav-links a,
+.nav-button {
     color: white;
     text-decoration: none;
     font-weight: bold;
+    padding: 0.5rem 0.75rem;
+    border-radius: 4px;
+    transition: background-color 0.2s ease-in-out;
 }
 
-.nav-links a:hover {
+.nav-links a:hover,
+.nav-button:hover {
+    background-color: #555;
     color: #61dafbaa;
+}
+
+.nav-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: inherit;
 }

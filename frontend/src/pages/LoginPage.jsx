@@ -1,13 +1,39 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
+import {useNavigate, useLocation} from 'react-router-dom';
+import {useAuth} from '../context/AuthContext';
 import './Form.css';
 
 function LoginPage() {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
+    const {login, error: authError, setError: setAuthError, isAuthenticated} = useAuth();
+    const navigate = useNavigate();
+    const location = useLocation();
 
-    const handleSubmit = (event) => {
+    useEffect(() => {
+        if (isAuthenticated) {
+            const home = "/";
+            navigate(home, {replace: true});
+        }
+    }, [isAuthenticated, navigate, location.state]);
+
+    // Сбрасываем ошибку при размонтировании или изменении username/password
+    useEffect(() => {
+        return () => {
+            setAuthError(null);
+        };
+    }, [setAuthError, username, password]);
+
+
+    const handleSubmit = async (event) => {
         event.preventDefault();
-        console.log('Login attempt:', {username, password});
+        setAuthError(null);
+        const success = await login(username, password);
+        if (success) {
+            const home = "/";
+            navigate(home, {replace: true});
+        }
+
     };
 
     return (
@@ -34,6 +60,7 @@ function LoginPage() {
                         required
                     />
                 </div>
+                {authError && <p className="error-message">{authError}</p>}
                 <button type="submit">Войти</button>
             </form>
         </div>
