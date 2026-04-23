@@ -192,7 +192,7 @@ function BookDetailPage() {
             <h2>{book.title}</h2>
             <p><strong>Автор:</strong> {book.author}</p>
             {book.description && <p><strong>Описание:</strong> {book.description}</p>}
-            <p><strong>Владелец (ID):</strong> {book.owner_id}
+            <p><strong>Владелец:</strong> {book.owner_username || `ID: ${book.owner_id}`}
                 {isAuthenticated && user?.id === book.owner_id && <span> (Это ваша книга)</span>}
             </p>
             <p><strong>Статус:</strong> {book.is_available ? 'Доступна для обмена' : 'Недоступна'}</p>
@@ -285,7 +285,8 @@ function BookDetailPage() {
                     {reviews.map(review => (
                         <li key={review.id} className="review-item">
                             <p>
-                                <strong>{review.user?.username || 'Неизвестный пользователь'}:</strong> Оценка {review.rating}/5
+                                <strong>{review.user?.username || 'Неизвестный пользователь'}:</strong>
+                                {' '}<span className="stars">{'★'.repeat(review.rating)}{'☆'.repeat(5 - review.rating)}</span>
                             </p>
                             {review.text && <p>{review.text}</p>}
                             <small>Оставлен: {review.created_at ? new Date(review.created_at).toLocaleDateString() : 'Дата неизвестна'}</small>

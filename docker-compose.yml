@@ -11,6 +11,12 @@ services:
       POSTGRES_PASSWORD: password
       POSTGRES_DB: mydatabase
     restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d mydatabase"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
 
   backend:
     build: ./backend
@@ -21,7 +27,8 @@ services:
     volumes:
       - ./backend:/app
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     restart: always
 
   frontend:
@@ -39,5 +46,6 @@ services:
     volumes:
       - ./backend:/app
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     command: [ "sh", "-c", "PYTHONPATH=/app pytest tests/ && python /app/reinitialize_db_schema.py" ]

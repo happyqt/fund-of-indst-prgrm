@@ -1,129 +1,85 @@
+/* BookDetailPage.css */
 .book-detail-container {
-    max-width: 800px;
-    margin: 2rem auto;
-    padding: 2rem;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    background-color: #f9f9f9;
-    color: #333; /* Ensure text is readable on light background */
+  max-width: 720px;
 }
 
 .book-detail-container h2 {
-    text-align: center;
-    margin-bottom: 1.5rem;
-    color: #007bff;
+  font-size: 1.7rem;
+  margin-bottom: 0.5rem;
 }
 
-.book-detail-container p {
-    margin-bottom: 0.8rem;
-    line-height: 1.5;
+.book-detail-container > p {
+  font-size: 0.95rem;
+  margin-bottom: 0.5rem;
+  color: var(--text-secondary);
+}
+.book-detail-container > p strong {
+  color: var(--text-primary);
 }
 
-.book-detail-container strong {
-    color: #555;
+/* Секция предложения обмена */
+.exchange-propose-section {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
+  margin: 1.25rem 0;
+}
+.exchange-propose-section h4 {
+  margin-bottom: 1rem;
+  font-size: 1rem;
+  color: var(--text-primary);
+}
+.exchange-propose-section form > div {
+  margin-bottom: 0.75rem;
+}
+
+/* Секция отзывов */
+.review-form-section {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
+  margin-bottom: 1.25rem;
+}
+.review-form-section h4 {
+  margin-bottom: 1rem;
+  font-size: 1rem;
+}
+.review-form-section form > div {
+  margin-bottom: 0.75rem;
 }
 
 .reviews-list {
-    list-style: none;
-    padding: 0;
-    margin-top: 1.5rem;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
 }
 
 .review-item {
-    border: 1px solid #eee;
-    border-radius: 4px;
-    padding: 1rem;
-    margin-bottom: 1rem;
-    background-color: #fff;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 1rem 1.1rem;
+  font-size: 0.9rem;
 }
-
 .review-item p {
-    margin: 0 0 0.5rem 0;
+  margin: 0 0 0.3rem;
+  color: var(--text-secondary);
 }
-
+.review-item p strong {
+  color: var(--text-primary);
+}
 .review-item small {
-    color: #777;
-    font-size: 0.9em;
+  color: var(--text-muted);
+  font-size: 0.8rem;
 }
 
-.book-detail-container hr {
-    margin: 2rem 0;
-    border: none;
-    border-top: 1px solid #eee;
-}
-
-.error-message {
-    color: red;
-    background-color: #ffebee;
-    border: 1px solid red;
-    padding: 0.75rem;
-    border-radius: 4px;
-    margin-bottom: 1rem;
-    text-align: center;
-}
-
-.book-title-link {
-    text-decoration: none;
-    color: #007bff;
-    transition: color 0.2s ease-in-out;
-}
-
-.book-title-link:hover {
-    color: #0056b3;
-    text-decoration: underline;
-}
-
-.exchange-propose-section {
-    margin-top: 2rem;
-    padding: 1.5rem;
-    background-color: #e9f5ff;
-    border: 1px solid #b3d7ff;
-    border-radius: 6px;
-}
-
-.exchange-propose-section h4 {
-    margin-top: 0;
-    margin-bottom: 1rem;
-    color: #0056b3;
-}
-
-.exchange-propose-section select,
-.exchange-propose-section input[type="text"] {
-    width: calc(100% - 22px);
-    padding: 0.6rem;
-    margin-bottom: 1rem;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    box-sizing: border-box;
-}
-
-.exchange-propose-section select {
-    width: 100%;
-}
-
-
-.exchange-propose-section button {
-    width: 100%;
-    padding: 0.75rem;
-    background-color: #28a745;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 1rem;
-}
-
-.exchange-propose-section button:hover {
-    background-color: #1e7e34;
-}
-
-.exchange-propose-section .error-message,
-.exchange-propose-section .success-message {
-    margin-bottom: 1rem;
-}
-
-.book-detail-container p strong + span {
-    font-style: italic;
-    color: #6c757d;
-    font-size: 0.9em;
+/* Звёздный рейтинг */
+.stars {
+  color: var(--color-warning);
+  letter-spacing: 1px;
 }

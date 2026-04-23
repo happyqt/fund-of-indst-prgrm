@@ -4,6 +4,7 @@
 from flask import jsonify, request, g
 from app.database import get_db
 from app.models.book import Book
+from app.models.user import User
 from app.models.exchange import Exchange
 from app.auth import login_required
 from sqlalchemy import or_, func
@@ -13,11 +14,12 @@ from sqlalchemy.exc import SQLAlchemyError
 def list_books():
     """
     Получить список доступных книг.
-    Позволяет фильтровать по названию (title) и автору (author) по частичному совпадению без регистра
+    Позволяет фильтровать по названию (title) и автору (author) по частичному совпадению без регистра.
+    Поддерживает пагинацию через параметры page и per_page.
     ---
     tags:
       - Books
-    summary: Получить список доступных книг с возможностью фильтрации
+    summary: Получить список доступных книг с возможностью фильтрации и пагинации
     parameters:
       - name: title
         in: query
@@ -31,20 +33,48 @@ def list_books():
         description: Часть имени автора для поиска
         schema:
           type: string
+      - name: page
+        in: query
+        required: false
+        description: Номер страницы (начиная с 1)
+        schema:
+          type: integer
+          default: 1
+      - name: per_page
+        in: query
+        required: false
+        description: Количество книг на странице (от 1 до 100)
+        schema:
+          type: integer
+          default: 20
     responses:
       200:
-        description: Список доступных книг.
+        description: Список доступных книг с метаданными пагинации.
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/BookListResponse'
+              type: object
+              properties:
+                books:
+                  $ref: '#/components/schemas/BookListResponse'
+                total:
+                  type: integer
+                  description: Общее количество книг, соответствующих фильтру
+                page:
+                  type: integer
+                per_page:
+                  type: integer
+                total_pages:
+                  type: integer
       500:
         $ref: '#/components/responses/InternalServerError'
     """
     db_generator = get_db()
     db = next(db_generator)
     try:
-        query = db.query(Book).filter(Book.is_available.is_(True))
+        query = db.query(Book, User.username).join(User, Book.owner_id == User.id).filter(
+            Book.is_available.is_(True)
+        )
 
         title_filter = request.args.get('title')
         author_filter = request.args.get('author')
@@ -55,19 +85,36 @@ def list_books():
         if author_filter:
             query = query.filter(func.lower(Book.author).contains(func.lower(author_filter)))
 
-        books = query.all()
+        # Пагинация
+        try:
+            page = max(1, int(request.args.get('page', 1)))
+            per_page = min(100, max(1, int(request.args.get('per_page', 20))))
+        except (ValueError, TypeError):
+            page = 1
+            per_page = 20
+
+        total = query.count()
+        total_pages = (total + per_page - 1) // per_page
+        rows = query.offset((page - 1) * per_page).limit(per_page).all()
 
         books_list = []
-        for book in books:
+        for book, owner_username in rows:
             books_list.append({
                 "id": book.id,
                 "title": book.title,
                 "author": book.author,
                 "description": book.description,
                 "owner_id": book.owner_id,
+                "owner_username": owner_username,
                 "is_available": book.is_available
             })
-        return jsonify(books_list), 200
+        return jsonify({
+            "books": books_list,
+            "total": total,
+            "page": page,
+            "per_page": per_page,
+            "total_pages": total_pages
+        }), 200
     except SQLAlchemyError as e:
         db.rollback()
         return jsonify({"error": "Database error", "message": str(e)}), 500
@@ -106,15 +153,19 @@ def get_book(book_id):
     db_generator = get_db()
     db = next(db_generator)
     try:
-        book = db.query(Book).filter(Book.id == book_id).first()
-        if book is None:
+        row = db.query(Book, User.username).join(User, Book.owner_id == User.id).filter(
+            Book.id == book_id
+        ).first()
+        if row is None:
             return jsonify({"message": "Book not found"}), 404
+        book, owner_username = row
         book_data = {
             "id": book.id,
             "title": book.title,
             "author": book.author,
             "description": book.description,
             "owner_id": book.owner_id,
+            "owner_username": owner_username,
             "is_available": book.is_available
         }
         return jsonify(book_data), 200

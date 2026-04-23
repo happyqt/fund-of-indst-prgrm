@@ -411,7 +411,7 @@ def create_app():
             if not data or not all(k in data for k in ('title', 'author')):
                 return jsonify({"error": "Missing required fields (title, author)"}), 400
 
-            owner_id = g.current_user.id  # курс говно я устал
+            owner_id = g.current_user.id
 
             new_book = Book(
                 title=data['title'],

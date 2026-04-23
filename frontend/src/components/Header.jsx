@@ -1,5 +1,5 @@
 import React from 'react';
-import {Link, useNavigate} from 'react-router-dom';
+import {NavLink, useNavigate} from 'react-router-dom';
 import {useAuth} from '../context/AuthContext';
 import './Header.css';
 
@@ -12,22 +12,26 @@ function Header() {
         navigate('/login');
     };
 
+    const navClass = ({isActive}) => isActive ? 'active' : '';
+
     return (
         <header className="app-header">
-            <Link to="/" className="logo-link"><h1>BookSwap</h1></Link>
+            <NavLink to="/" className="logo-link">
+                <h1>📚 BookSwap</h1>
+            </NavLink>
             <nav>
                 <ul className="nav-links">
-                    <li><Link to="/books">Все книги</Link></li>
+                    <li><NavLink to="/books" className={navClass}>Все книги</NavLink></li>
                     {isAuthenticated ? (
                         <>
-                            <li><Link to="/my-books">Мои книги</Link></li>
-                            <li><Link to="/add-book">Добавить книгу</Link></li>
-                            <li><Link to="/exchanges">Мои обмены</Link></li>
+                            <li><NavLink to="/my-books" className={navClass}>Мои книги</NavLink></li>
+                            <li><NavLink to="/add-book" className={navClass}>Добавить</NavLink></li>
+                            <li><NavLink to="/exchanges" className={navClass}>Обмены</NavLink></li>
                             {isAdmin && (
                                 <>
-                                    <li><Link to="/admin/stats">Статистика</Link></li>
-                                    <li><Link to="/admin/books">Все книги (Админ)</Link></li>
-                                    <li><Link to="/admin/users">Все пользователи (Админ)</Link></li>
+                                    <li><NavLink to="/admin/stats" className={navClass}>Статистика</NavLink></li>
+                                    <li><NavLink to="/admin/books" className={navClass}>Все книги (А)</NavLink></li>
+                                    <li><NavLink to="/admin/users" className={navClass}>Пользователи (А)</NavLink></li>
                                 </>
                             )}
                             <li>
@@ -38,8 +42,8 @@ function Header() {
                         </>
                     ) : (
                         <>
-                            <li><Link to="/login">Войти</Link></li>
-                            <li><Link to="/register">Регистрация</Link></li>
+                            <li><NavLink to="/login" className={navClass}>Войти</NavLink></li>
+                            <li><NavLink to="/register" className={navClass}>Регистрация</NavLink></li>
                         </>
                     )}
                 </ul>

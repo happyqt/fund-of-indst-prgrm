@@ -3,6 +3,8 @@ import {Link} from 'react-router-dom';
 import {useAuth} from '../context/AuthContext';
 import './BooksListPage.css';
 
+const PER_PAGE = 12;
+
 function BooksListPage() {
     const [books, setBooks] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -14,6 +16,10 @@ function BooksListPage() {
     const [activeTitleFilter, setActiveTitleFilter] = useState('');
     const [activeAuthorFilter, setActiveAuthorFilter] = useState('');
 
+    const [page, setPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const [total, setTotal] = useState(0);
+
     const {user, isAuthenticated, isLoading: authLoading} = useAuth();
     const [showMyBooks, setShowMyBooks] = useState(true);
 
@@ -22,20 +28,15 @@ function BooksListPage() {
         setError(null);
 
         const queryParams = new URLSearchParams();
-        if (activeTitleFilter) {
-            queryParams.append('title', activeTitleFilter);
-        }
-        if (activeAuthorFilter) {
-            queryParams.append('author', activeAuthorFilter);
-        }
-        const queryString = queryParams.toString();
+        if (activeTitleFilter) queryParams.append('title', activeTitleFilter);
+        if (activeAuthorFilter) queryParams.append('author', activeAuthorFilter);
+        queryParams.append('page', page);
+        queryParams.append('per_page', PER_PAGE);
 
         try {
-            const response = await fetch(`/api/books${queryString ? `?${queryString}` : ''}`, {
+            const response = await fetch(`/api/books?${queryParams.toString()}`, {
                 method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: {'Content-Type': 'application/json'},
             });
 
             if (!response.ok) {
@@ -44,14 +45,23 @@ function BooksListPage() {
             }
 
             const data = await response.json();
-            setBooks(data);
+            // Поддержка нового формата {books, total, ...}
+            if (Array.isArray(data)) {
+                setBooks(data);
+                setTotalPages(1);
+                setTotal(data.length);
+            } else {
+                setBooks(data.books || []);
+                setTotalPages(data.total_pages || 1);
+                setTotal(data.total || 0);
+            }
         } catch (err) {
             console.error("Failed to fetch books:", err);
             setError(err.message);
         } finally {
             setLoading(false);
         }
-    }, [activeTitleFilter, activeAuthorFilter]);
+    }, [activeTitleFilter, activeAuthorFilter, page]);
 
     useEffect(() => {
         if (!authLoading) {
@@ -61,6 +71,7 @@ function BooksListPage() {
 
     const handleApplyFilters = (event) => {
         event.preventDefault();
+        setPage(1);
         setActiveTitleFilter(inputTitleFilter);
         setActiveAuthorFilter(inputAuthorFilter);
     };
@@ -68,6 +79,7 @@ function BooksListPage() {
     const handleClearFilters = () => {
         setInputTitleFilter('');
         setInputAuthorFilter('');
+        setPage(1);
         if (activeTitleFilter !== '' || activeAuthorFilter !== '') {
             setActiveTitleFilter('');
             setActiveAuthorFilter('');
@@ -95,7 +107,7 @@ function BooksListPage() {
                     <input
                         type="text"
                         placeholder="Фильтр по названию..."
-                        value={inputTitleFilter} // Привязываем к inputTitleFilter
+                        value={inputTitleFilter}
                         onChange={(e) => setInputTitleFilter(e.target.value)}
                         className="filter-input"
                     />
@@ -104,7 +116,7 @@ function BooksListPage() {
                     <input
                         type="text"
                         placeholder="Фильтр по автору..."
-                        value={inputAuthorFilter} // Привязываем к inputAuthorFilter
+                        value={inputAuthorFilter}
                         onChange={(e) => setInputAuthorFilter(e.target.value)}
                         className="filter-input"
                     />
@@ -117,7 +129,7 @@ function BooksListPage() {
                 </div>
             </form>
 
-            {isAuthenticated && ( // только аутентифицированным пользователям
+            {isAuthenticated && (
                 <div className="show-my-books-toggle">
                     <label htmlFor="showMyBooksCheckbox">
                         <input
@@ -133,6 +145,13 @@ function BooksListPage() {
 
             {loading && <p>Обновление списка книг...</p>}
 
+            {total > 0 && (
+                <p className="results-count">
+                    Найдено книг: <strong>{total}</strong>
+                    {totalPages > 1 && ` (страница ${page} из ${totalPages})`}
+                </p>
+            )}
+
             {displayedBooks.length === 0 && !loading ? (
                 <p>
                     Нет доступных книг, соответствующих вашим фильтрам
@@ -146,7 +165,10 @@ function BooksListPage() {
                                 <Link to={`/books/${book.id}`} className="book-title-link">
                                     <strong>{book.title}</strong>
                                 </Link>
-                                <span> - <em>{book.author}</em></span>
+                                <span> — <em>{book.author}</em></span>
+                                {book.owner_username && (
+                                    <span className="book-owner"> · {book.owner_username}</span>
+                                )}
                                 {isAuthenticated && user && book.owner_id === user.id && (
                                     <span className="my-book-indicator"> (Моя книга)</span>
                                 )}
@@ -157,6 +179,26 @@ function BooksListPage() {
                         </li>
                     ))}
                 </ul>
+            )}
+
+            {totalPages > 1 && (
+                <div className="pagination">
+                    <button
+                        onClick={() => setPage(p => Math.max(1, p - 1))}
+                        disabled={page === 1 || loading}
+                        className="page-button"
+                    >
+                        ← Назад
+                    </button>
+                    <span className="page-info">Страница {page} из {totalPages}</span>
+                    <button
+                        onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                        disabled={page === totalPages || loading}
+                        className="page-button"
+                    >
+                        Вперёд →
+                    </button>
+                </div>
             )}
         </div>
     );

@@ -1,168 +1,119 @@
+/* MyExchangesPage.css */
 .my-exchanges-container {
-    max-width: 800px;
-    margin: 2rem auto;
-    padding: 1.5rem;
-    background-color: #f9f9f9;
-    border-radius: 8px;
-    color: #333;
-}
-
-.my-exchanges-container h2 {
-    text-align: center;
-    margin-bottom: 1.5rem;
-    color: #007bff;
+  max-width: 800px;
 }
 
 .filter-buttons {
-    margin-bottom: 1.5rem;
-    text-align: center;
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
 }
 
 .filter-buttons button {
-    padding: 0.5rem 1rem;
-    margin: 0 0.5rem;
-    border: 1px solid #007bff;
-    background-color: white;
-    color: #007bff;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.2s, color 0.2s;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  padding: 0.4em 1em;
+  font-size: 0.875rem;
+  border-radius: var(--radius-sm);
 }
-
 .filter-buttons button:hover {
-    background-color: #007bff;
-    color: white;
+  background-color: var(--bg-elevated);
+  color: var(--text-primary);
 }
-
 .filter-buttons button.active {
-    background-color: #007bff;
-    color: white;
-    font-weight: bold;
+  background-color: var(--accent-light);
+  border-color: rgba(99, 102, 241, 0.4);
+  color: var(--accent);
+  font-weight: 600;
 }
 
 .exchanges-list {
-    list-style: none;
-    padding: 0;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
 }
 
 .exchange-item {
-    background-color: #fff;
-    border: 1px solid #e0e0e0;
-    border-radius: 6px;
-    padding: 1rem;
-    margin-bottom: 1rem;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 1rem 1.1rem;
+  border-left: 3px solid var(--border);
 }
+.exchange-item.status-pending   { border-left-color: var(--color-warning); }
+.exchange-item.status-accepted  { border-left-color: var(--color-success); }
+.exchange-item.status-rejected  { border-left-color: var(--color-danger); }
+.exchange-item.status-cancelled { border-left-color: var(--text-muted); }
 
-.exchange-item p {
-    margin: 0.5rem 0;
-    line-height: 1.6;
+.exchange-details p {
+  margin: 0 0 0.35rem;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
 }
-
-.exchange-item strong {
-    color: #555;
-}
-
-.exchange-item small {
-    color: #777;
-    font-size: 0.9em;
-}
-
-.exchange-details {
-    margin-bottom: 0.5rem;
+.exchange-details p strong {
+  color: var(--text-primary);
 }
 
 .status-text {
-    font-weight: bold;
-    text-transform: capitalize;
+  display: inline-block;
+  padding: 0.15em 0.6em;
+  border-radius: 99px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
-
-
-.exchange-item.status-pending .status-text {
-    color: #ffa000;
-}
-
-.exchange-item.status-accepted .status-text {
-    color: #388e3c;
-}
-
-.exchange-item.status-rejected .status-text {
-    color: #d32f2f;
-}
-
-.exchange-item.status-cancelled .status-text {
-    color: #757575;
-}
+.status-pending .status-text   { background: var(--color-warning-bg); color: var(--color-warning); }
+.status-accepted .status-text  { background: var(--color-success-bg); color: var(--color-success); }
+.status-rejected .status-text,
+.status-cancelled .status-text { background: var(--color-danger-bg); color: var(--color-danger); }
 
 .exchange-actions {
-    margin-top: 1rem;
-    display: flex;
-    gap: 0.5rem;
-    flex-wrap: wrap;
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  flex-wrap: wrap;
 }
 
 .action-button {
-    padding: 0.5em 1em;
-    border: none;
-    border-radius: 4px;
-    color: white;
-    cursor: pointer;
-    font-size: 0.9rem;
-    transition: opacity 0.2s;
+  font-size: 0.85rem;
+  padding: 0.4em 1em;
 }
-
-.action-button:hover {
-    opacity: 0.85;
-}
-
 .action-button.accept {
-    background-color: #4CAF50;
+  background-color: var(--color-success-bg);
+  color: var(--color-success);
+  border-color: rgba(74, 222, 128, 0.3);
 }
-
+.action-button.accept:hover {
+  background-color: rgba(74, 222, 128, 0.22);
+}
 .action-button.reject {
-    background-color: #f44336;
+  background-color: var(--color-danger-bg);
+  color: var(--color-danger);
+  border-color: rgba(248, 113, 113, 0.3);
 }
-
+.action-button.reject:hover {
+  background-color: rgba(248, 113, 113, 0.22);
+}
 .action-button.cancel {
-    background-color: #ff9800;
+  background-color: var(--bg-elevated);
+  color: var(--text-secondary);
+  border-color: var(--border);
 }
-
-.error-message {
-    color: #D8000C;
-    background-color: #FFD2D2;
-    border: 1px solid #D8000C;
-    padding: 0.75rem;
-    border-radius: 4px;
-    margin: 1rem 0;
-    text-align: center;
-}
-
-.success-message {
-    color: #4F8A10;
-    background-color: #DFF2BF;
-    border: 1px solid #4F8A10;
-    padding: 0.75rem;
-    border-radius: 4px;
-    margin: 1rem 0;
-    text-align: center;
-}
-
-.info-message {
-    color: #00529B;
-    background-color: #BDE5F8;
-    border: 1px solid #00529B;
-    padding: 0.75rem;
-    border-radius: 4px;
-    margin-top: 1rem;
-    text-align: center;
+.action-button.cancel:hover {
+  background-color: var(--bg-hover);
 }
 
 .book-title-link {
-    text-decoration: none;
-    color: #007bff;
-    transition: color 0.2s ease-in-out;
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 500;
 }
-
 .book-title-link:hover {
-    color: #0056b3;
-    text-decoration: underline;
+  text-decoration: underline;
 }

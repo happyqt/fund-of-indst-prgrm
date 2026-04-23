@@ -177,10 +177,10 @@ function MyExchangesPage() {
                                 <div className="exchange-details">
                                     <p><strong>ID Обмена:</strong> {exchange.id}</p>
                                     <p>
-                                        {isProposer ? "Вы предлагаете:" : `Пользователь ${exchange.proposing_user_id} предлагает:`} {getBookDisplay(exchange.proposed_book_id)}
+                                        {isProposer ? "Вы предлагаете:" : `${booksDetails[exchange.proposed_book_id]?.owner_username || `Пользователь ${exchange.proposing_user_id}`} предлагает:`} {getBookDisplay(exchange.proposed_book_id)}
                                     </p>
                                     <p>
-                                        {isReceiver ? "Вам предлагают за:" : `Пользователю ${exchange.receiving_user_id} за:`} {getBookDisplay(exchange.requested_book_id)}
+                                        {isReceiver ? "Вам предлагают за:" : `${booksDetails[exchange.requested_book_id]?.owner_username || `Пользователь ${exchange.receiving_user_id}`} хочет:`} {getBookDisplay(exchange.requested_book_id)}
                                     </p>
                                     <p><strong>Статус:</strong> <span
                                         className="status-text">{exchange.status}</span></p>

@@ -39,12 +39,13 @@ def other_user_auth_headers(other_user):
 
 def test_get_books_empty(client, db_session):
     """Проверка GET /api/books когда нет книг."""
-    response = client.get('/api/books')  # Делаем GET запрос через тестовый клиент
+    response = client.get('/api/books')
 
-    # Проверяем статус код ответа
     assert response.status_code == 200
-    # Проверяем, что тело ответа - пустой JSON массив
-    assert response.get_json() == []
+    resp_json = response.get_json()
+    # Новый формат: {books: [], total: 0, ...}
+    assert resp_json['books'] == []
+    assert resp_json['total'] == 0
 
 
 def test_add_book(client, db_session, authenticated_user):
@@ -349,62 +350,57 @@ def test_get_books_with_filters(client, db_session, create_user, create_book):
     book3 = create_book(title="Web Development with Flask", author="John Smith", owner_id=owner.id)
     book4 = create_book(title="Data Science Handbook", author="Peter Pan", owner_id=owner.id, is_available=False)
 
+    def get_books(url):
+        """Helper: returns books list from paginated response."""
+        r = client.get(url)
+        assert r.status_code == 200
+        resp = r.get_json()
+        # Поддерживаем оба формата (новый и старый)
+        return resp['books'] if isinstance(resp, dict) else resp
+
     # Фильтр по названию (должен найти book1 и book2)
-    response = client.get('/api/books?title=Python')
-    assert response.status_code == 200
-    data = response.get_json()
+    data = get_books('/api/books?title=Python')
     assert len(data) == 2
     titles = {item['title'] for item in data}
     assert book1.title in titles
     assert book2.title in titles
 
     # Фильтр по названию (регистр)
-    response = client.get('/api/books?title=python')
-    assert response.status_code == 200
-    data = response.get_json()
+    data = get_books('/api/books?title=python')
     assert len(data) == 2
     titles = {item['title'] for item in data}
     assert book1.title in titles
     assert book2.title in titles
 
     # Фильтр по автору
-    response = client.get('/api/books?author=Doe')
-    assert response.status_code == 200
-    data = response.get_json()
-    assert len(data) == 2  # Предполагаем, что Jane Doe и John Doe
+    data = get_books('/api/books?author=Doe')
+    assert len(data) == 2
     authors = {item['author'] for item in data}
     assert book1.author in authors
     assert book2.author in authors
 
     # Фильтр по названию и автору (должен найти book1)
-    response = client.get('/api/books?title=Python&author=John Doe')
-    assert response.status_code == 200
-    data = response.get_json()
+    data = get_books('/api/books?title=Python&author=John Doe')
     assert len(data) == 1
     assert data[0]['title'] == book1.title
     assert data[0]['author'] == book1.author
 
     # Фильтр по части названия (должен найти book3)
-    response = client.get('/api/books?title=Flask')
-    assert response.status_code == 200
-    data = response.get_json()
+    data = get_books('/api/books?title=Flask')
     assert len(data) == 1
     assert data[0]['title'] == book3.title
 
     # Фильтр, который ничего не находит
-    response = client.get('/api/books?title=NonExistentBook')
-    assert response.status_code == 200
-    assert response.get_json() == []
+    data = get_books('/api/books?title=NonExistentBook')
+    assert data == []
 
     # Фильтр по автору, который ничего не находит
-    response = client.get('/api/books?author=Nobody')
-    assert response.status_code == 200
-    assert response.get_json() == []
+    data = get_books('/api/books?author=Nobody')
+    assert data == []
 
     # Проверка, что недоступные книги не возвращаются даже с фильтром
-    response = client.get('/api/books?title=Data Science')
-    assert response.status_code == 200
-    assert response.get_json() == []
+    data = get_books('/api/books?title=Data Science')
+    assert data == []
 
 
 def test_get_books_no_filters_returns_all_available(client, db_session, create_user, create_book):
@@ -416,7 +412,9 @@ def test_get_books_no_filters_returns_all_available(client, db_session, create_u
 
     response = client.get('/api/books')
     assert response.status_code == 200
-    data = response.get_json()
+    resp = response.get_json()
+    # Поддерживаем оба формата
+    data = resp['books'] if isinstance(resp, dict) else resp
     assert len(data) == 2
     titles = {item['title'] for item in data}
     assert book1.title in titles
